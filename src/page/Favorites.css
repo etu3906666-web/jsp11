@@ -1,0 +1,9 @@
+/* Favorites 스타일 */
+.favorites-wrapper {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.favorites-container {
+  width: 100%;
+}

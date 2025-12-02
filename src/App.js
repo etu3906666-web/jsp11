@@ -1,24 +1,60 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import Flashback from "./page/Flashback";
+import LoginJoin from "./page/LoginJoin";
+import Login from "./page/Login";
+import Signup from "./page/Signup";
+import SearchResult from "./page/SearchResult";
+import Calendar from "./page/Calendar";
+
+import ProtectedRoute from "./components/ProtectedRoute";
+import Main from "./page/Main";
+import MyPage from "./page/MyPage";
+import ChangePassword from "./page/ChangePassword";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Flashback />} />
+        <Route path="/loginjoin" element={<LoginJoin />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/search" element={<SearchResult />} />
+
+        {/* 일정 관리 페이지 */}
+        <Route path="/calendar" element={<Calendar />} />
+
+        {/* 로그인 보호 페이지 */}
+        <Route
+          path="/main"
+          element={
+            <ProtectedRoute>
+              <Main />
+            </ProtectedRoute>
+          }
+        />
+        {/* 마이페이지 */}
+        <Route
+          path="/mypage"
+          element={
+            <ProtectedRoute>
+              <MyPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* 비밀번호 변경 페이지 */}
+        <Route
+          path="/change-password"
+          element={
+            <ProtectedRoute>
+              <ChangePassword />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    </Router>
   );
 }
 
