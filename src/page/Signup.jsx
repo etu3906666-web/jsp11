@@ -1,10 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import bcrypt from "bcryptjs";
-import { db } from "../firebase";
-import { doc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { auth, setRecaptcha } from "../firebase";
-import { signInWithPhoneNumber } from "firebase/auth";
+import axiosInstance from "../utils/axios";
 import "./Signup.css";
 
 export default function Signup() {
@@ -13,13 +9,8 @@ export default function Signup() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [verifyCode, setVerifyCode] = useState("");
-  const [verified, setVerified] = useState(false);
-
-  const [timer, setTimer] = useState(0);
-  const [isSending, setIsSending] = useState(false);
 
   const [usernameChecked, setUsernameChecked] = useState(false);
 
@@ -45,7 +36,8 @@ export default function Signup() {
 
   // 비밀번호: 영문+숫자+특수문자 8~20자
   const validatePassword = () => {
-    const regex = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,20}$/;
+    const regex =
+      /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,20}$/;
     if (!regex.test(password)) {
       alert("비밀번호는 영문+숫자+특수문자 포함 8~20자로 입력해야 합니다.");
       return false;
@@ -63,49 +55,31 @@ export default function Signup() {
     return true;
   };
 
+  // 아이디 중복 확인 (서버 API GET 요청)
   const checkUsernameDuplicate = async () => {
     if (!validateUsername()) return;
 
-    const q = query(
-      collection(db, "users"),
-      where("username", "==", username)
-    );
-
-    const snapshot = await getDocs(q);
-
-    if (!snapshot.empty) {
-      alert("이미 사용 중인 아이디입니다.");
-      setUsernameChecked(false);
-      return false;
-    } else {
-      alert("사용 가능한 아이디입니다!");
-      setUsernameChecked(true);
-      return true;
-    }
-  };
-
-  const saveUserToFirestore = async () => {
     try {
-      const hashedPassword = bcrypt.hashSync(password, 10);
+      const res = await axiosInstance.get(
+        "/api/auth/check-username",
+        { params: { userID: username } }
+      );
 
-      await setDoc(doc(db, "users", phone), {
-        name,
-        username,
-        password: hashedPassword,
-        phone,
-        createdAt: new Date(),
-      });
-
-      alert("회원가입이 완료되었습니다!");
-      navigate("/login");   // 로그인 화면으로 이동
-
-    } catch (error) {
-      console.error("회원정보 저장 오류:", error);
-      alert("회원가입에 실패했습니다.");
+      if (res.data.data.exists) {
+        alert("이미 사용 중인 아이디입니다.");
+        setUsernameChecked(false);
+      } else {
+        alert("사용 가능한 아이디입니다!");
+        setUsernameChecked(true);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("중복 확인 중 오류 발생");
     }
   };
 
-  const handleSignup = () => {
+  // 회원가입 요청 (서버 API POST 요청)
+  const handleSignup = async () => {
     if (!validateName()) return;
     if (!validateUsername()) return;
     if (!validatePassword()) return;
@@ -116,75 +90,38 @@ export default function Signup() {
       return;
     }
 
-    if (!verified) {
-      alert("전화번호 인증을 먼저 완료하세요.");
-      return;
-    }
-
-    saveUserToFirestore();
-  };
-
-  const sendVerificationCode = async () => {
-    if (!validatePhone()) return;
-
-    if (isSending) {
-      alert("잠시 후 다시 시도하세요.");
-      return;
-    }
-
     try {
-      setRecaptcha();
-      const converted = "+82" + phone.slice(1);
-
-      const confirmation = await signInWithPhoneNumber(
-        auth,
-        converted,
-        window.recaptchaVerifier
+      const res = await axiosInstance.post(
+        "/api/auth/register",
+        {
+          userID: username,
+          password,
+          email,
+          phone_num: phone,
+        }
       );
 
-      window.confirmationResult = confirmation;
-
-      alert("인증번호가 전송되었습니다.");
-      startTimer(); // 타이머 시작
+      alert(res.data.message);
+      navigate("/login");
     } catch (err) {
       console.error(err);
-      alert("인증번호 전송 실패: " + err.message);
+      alert(err.response?.data?.message || "회원가입 중 오류 발생");
     }
-  };
-
-  const checkVerificationCode = async () => {
-    try {
-      await window.confirmationResult.confirm(verifyCode);
-      setVerified(true);
-      alert("인증이 완료되었습니다!");
-    } catch (error) {
-      alert("인증번호가 올바르지 않습니다.");
-    }
-  };
-
-  const startTimer = () => {
-    setTimer(60);
-    setIsSending(true);
-
-    const countdown = setInterval(() => {
-      setTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(countdown);
-          setIsSending(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
   };
 
   return (
     <>
-      <div id="recaptcha-container"></div>
-
       <div className="SignupContainer">
-        <img src="/image/pattern.png" className="Signup-Primary-Pattern" />
-        <img src="/image/Primary_Pattern.png" className="Signup-Primary-PatternBottonimage" />
+        <img
+          src="/image/pattern.png"
+          className="Signup-Primary-Pattern"
+          alt=""
+        />
+        <img
+          src="/image/Primary_Pattern.png"
+          className="Signup-Primary-PatternBottonimage"
+          alt=""
+        />
 
         <div className="signup-content">
           <p className="Signup-title">회원가입</p>
@@ -209,7 +146,7 @@ export default function Signup() {
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value);
-                setUsernameChecked(false);  // 아이디 바뀌면 다시 검증 요구
+                setUsernameChecked(false); // 아이디 변경 시 다시 검사해야 함
               }}
             />
             <button className="check-btn" onClick={checkUsernameDuplicate}>
@@ -227,48 +164,27 @@ export default function Signup() {
             onChange={(e) => setPassword(e.target.value)}
           />
 
+          {/* 이메일 */}
+          <label className="Signup-label">이메일</label>
+          <input
+            type="email"
+            className="Signup-input"
+            placeholder="이메일을 입력하세요"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+
           {/* 전화번호 */}
           <label className="Signup-label">전화번호</label>
-          <div className="phone-row">
-            <input
-              type="text"
-              className="Signup-input phone-input"
-              placeholder="전화번호를 입력하세요"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
-            <button
-              className="verify-btn"
-              onClick={sendVerificationCode}
-              disabled={isSending}
-            >
-              {isSending ? `재전송 ${timer}s` : "인증"}
-            </button>
-          </div>
+          <input
+            type="text"
+            className="Signup-input"
+            placeholder="01012345678"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+          />
 
-          {/* 인증번호 입력 */}
-          {typeof window !== "undefined" &&
-            window.confirmationResult &&
-            !verified && (
-              <>
-                <label className="Signup-label">인증번호</label>
-                <div className="phone-row">
-                  <input
-                    type="text"
-                    className="Signup-input phone-input"
-                    placeholder="인증번호 입력"
-                    value={verifyCode}
-                    onChange={(e) => setVerifyCode(e.target.value)}
-                  />
-                  <button className="verify-btn" onClick={checkVerificationCode}>
-                    확인
-                  </button>
-                </div>
-              </>
-            )}
-
-          {verified && <p className="verified-text">✔ 인증 완료</p>}
-
+          {/* 회원가입 버튼 */}
           <button className="Signup-button" onClick={handleSignup}>
             회원가입
           </button>

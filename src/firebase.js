@@ -9,13 +9,13 @@ import { getFirestore } from "firebase/firestore";
 
 // 네가 Firebase 콘솔에서 받은 설정값
 const firebaseConfig = {
-  apiKey: "AIzaSyBWoa8YQc2qTFXvkAlRh-jj9rR-DfdTYu8",
-  authDomain: "jsp11-d1e88.firebaseapp.com",
-  projectId: "jsp11-d1e88",
-  storageBucket: "jsp11-d1e88.firebasestorage.app",
-  messagingSenderId: "355306799220",
-  appId: "1:355306799220:web:de6d810e384f517ae19121",
-  measurementId: "G-SS00XQFVP1"
+  apiKey: "AIzaSyCNzLrQEU9TC_fYw7gyuDFX6Us2n9Ixdo0",
+  authDomain: "gptmedical.firebaseapp.com",
+  projectId: "gptmedical",
+  storageBucket: "gptmedical.firebasestorage.app",
+  messagingSenderId: "653640372480",
+  appId: "1:653640372480:web:399ebeaa80a719de49a3e5",
+  measurementId: "G-K67LJ8JTSH"
 };
 
 // Firebase 초기화

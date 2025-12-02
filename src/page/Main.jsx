@@ -38,8 +38,20 @@ export default function Main() {
     setPreview(imageURL);
   };
 
+  const goSettings = () => {
+    navigate("/settings");  // ← SettingsPage 라우트로 이동
+  };
+
   return (
     <div className="MainContainer">
+      {/* ⭐ 오른쪽 상단 설정 버튼 추가 */}
+        <button className="SettingsButton" onClick={goSettings}>
+          ⚙
+        </button>
+
+      {/* 기존 컨텐츠 */}
+      <img src="/pattern-top.png" className="Main-PatternTop" alt="패턴" />
+      
       {/* 패턴 이미지 + 높이 읽기 */}
       <img
         src="/image/pattern.png"
@@ -74,10 +86,6 @@ export default function Main() {
           <button className="calendarBtn" onClick={() => navigate("/Calendar")}>
             <img src="/image/calendar.png" alt="Calendar" />
             <span className="CalendarText">일정 관리</span>
-          </button>
-             <button className="calendarBtn" onClick={() => navigate("/mypage")}>
-            <img src="/image/calendar.png" alt="user-icon.svg" />
-            <span className="CalendarText">마이페이지</span>
           </button>
         </div>
 

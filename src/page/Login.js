@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import bcrypt from "bcryptjs";
-import { db } from "../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import axiosInstance from "../utils/axios";
 import "./Login.css";
 
 export default function Login() {
@@ -18,43 +16,32 @@ export default function Login() {
         }
 
         try {
-            const q = query(
-                collection(db, "users"),
-                where("username", "==", username)
-            );
+            const res = await axiosInstance.post("/api/auth/login", {
+                userID: username,
+                password
+            });
 
-            const querySnapshot = await getDocs(q);
+            const { token, member_id, userID } = res.data.data;
 
-            if (querySnapshot.empty) {
-                alert("존재하지 않는 아이디입니다.");
-                return;
-            }
-
-            const userData = querySnapshot.docs[0].data();
-
-            const isMatch = bcrypt.compareSync(password, userData.password);
-
-            if (!isMatch) {
-                alert("비밀번호가 틀렸습니다.");
-                return;
-            }
-
-            // 로그인 성공
-            localStorage.setItem("user", JSON.stringify(userData));
+            // JWT 및 사용자 정보 저장
+            localStorage.setItem("token", token);
+            localStorage.setItem("member_id", member_id);
+            localStorage.setItem("userID", userID);
 
             alert("로그인 성공!");
-            navigate("/main");   // ⭐ 여기에 들어감
+            navigate("/main");
 
         } catch (error) {
-            console.error(error);
-            alert("로그인 중 오류가 발생했습니다.");
+            console.error("로그인 에러 상세:", error);
+            console.error("응답 데이터:", error.response?.data);
+            alert(error.response?.data?.message || "로그인 중 오류 발생");
         }
     };
 
     return (
         <div className="LoginContainer">
-            <img src="/image/pattern.png" className="Login-Primary-Patterntopimage" />
-            <img src="/image/Primary_Pattern.png" className="Login-Primary-PatternBottonimage" />
+            <img src="/image/pattern.png" className="Login-Primary-Patterntopimage" alt="" />
+            <img src="/image/Primary_Pattern.png" className="Login-Primary-PatternBottonimage" alt="" />
 
             <div className="Login-content">
                 <p className="Login-title">로그인</p>
@@ -63,7 +50,6 @@ export default function Login() {
                 <input
                     type="text"
                     className="Login-input"
-                    placeholder="아이디를 입력하세요"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                 />
@@ -72,7 +58,6 @@ export default function Login() {
                 <input
                     type="password"
                     className="Login-input"
-                    placeholder="비밀번호를 입력하세요"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                 />

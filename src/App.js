@@ -7,11 +7,13 @@ import Login from "./page/Login";
 import Signup from "./page/Signup";
 import SearchResult from "./page/SearchResult";
 import Calendar from "./page/Calendar";
+import SettingsPage from "./page/SettingsPage";
+import AppSettingsPage from "./page/AppSettingsPage";
+import FamilyConnect from "./page/FamilyConnect";
+import FamilyManage from "./page/FamilyManage";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Main from "./page/Main";
-import MyPage from "./page/MyPage";
-import ChangePassword from "./page/ChangePassword";
 
 function App() {
   return (
@@ -22,9 +24,14 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/search" element={<SearchResult />} />
+        <Route path="/family-connect" element={<FamilyConnect />} />
+        <Route path="/family-Manage" element={<FamilyManage />} />
 
         {/* 일정 관리 페이지 */}
         <Route path="/calendar" element={<Calendar />} />
+
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/app-settings" element={<AppSettingsPage />} />
 
         {/* 로그인 보호 페이지 */}
         <Route
@@ -32,24 +39,6 @@ function App() {
           element={
             <ProtectedRoute>
               <Main />
-            </ProtectedRoute>
-          }
-        />
-        {/* 마이페이지 */}
-        <Route
-          path="/mypage"
-          element={
-            <ProtectedRoute>
-              <MyPage />
-            </ProtectedRoute>
-          }
-        />
-        {/* 비밀번호 변경 페이지 */}
-        <Route
-          path="/change-password"
-          element={
-            <ProtectedRoute>
-              <ChangePassword />
             </ProtectedRoute>
           }
         />
